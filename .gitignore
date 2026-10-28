@@ -1,0 +1,12 @@
+# Zugangsdaten bleiben lokal
+.env
+.env.*
+
+# Umgebungen und Caches
+.venv*/
+__pycache__/
+*.pyc
+
+# Sicherungskopien, die Historie liegt in git
+*.bak
+*.bak[0-9]*
