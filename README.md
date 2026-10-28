@@ -37,6 +37,7 @@ Ist der PC aus, brechen die Ollama-Worker ab, ohne etwas zu verändern.
 | 3. Zusammenfassung (nur Dokumente) | `worker_zusammenfassung.py` | gemma3 |
 | 4. Feste Felder wie Art, Absender, Betrag, Nummern, Fristen | `worker_felder.py` | gemma3 |
 | 5. Tags einordnen (Person, Vorgang oder Kategorie) | `worker_tags.py` | gemma3 |
+| 5b. Personen-Tags mit Immich-Personen abgleichen (nur Vorschl?ge) | `worker_personen.py` | gemma3 |
 | 6. Verknüpfen | `verknuepfe.py` | – |
 | 7. Abgleich mit Immich (nur Vorschläge) | `sync_geburtstage.py` (Kontakt → Immich), `sync_fotos.py` (Immich → Kontakt) | – |
 | 8. Vorschläge prüfen | `vorschlaege.py`, `vorschlaege.py ja 3 5`, `vorschlaege.py nein 4` | – |

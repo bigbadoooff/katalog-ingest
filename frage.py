@@ -63,7 +63,7 @@ with psycopg.connect(os.environ["DB_DSN"]) as conn:
     """, (ids, ids, MAX_VERWANDT)).fetchall()
 
 kontext = "\n\n".join(
-    f"[{i}] Dokument: {t} | Datum: {d}\n{x if NEU else x[:900]}"
+    f"[{i}] Dokument: {t}{f' | Datum: {d}' if d else ''}\n{x if NEU else x[:900]}"
     for i, (_, t, d, l, x) in enumerate(rows, 1))
 if verwandt:
     kontext += "\n\nWEITERE DOKUMENTE AUS DEMSELBEN VORGANG (nur Zusammenfassung):\n\n" + "\n\n".join(
@@ -89,4 +89,4 @@ for i, (eid, t, d, l, _) in enumerate(rows, 1):
 for i, (eid, t, d, l, _, v) in enumerate(verwandt, len(rows) + 1):
     quellen.setdefault(eid, [[], d, t, l, f"  (Vorgang {v})"])[0].append(i)
 for nrs, d, t, l, zusatz in quellen.values():
-    print(f"[{','.join(map(str, nrs))}] {d} {t}{zusatz}\n    {l}")
+    print(f"[{','.join(map(str, nrs))}] {f'{d} ' if d else ''}{t}{zusatz}\n    {l}")
