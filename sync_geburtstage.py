@@ -1,6 +1,6 @@
 import os, psycopg
 from psycopg.types.json import Jsonb
-from abgleich import finde_kontakt, immich_personen, kontakte_laden
+from abgleich import immich_personen, kontakt_zu, kontakte_laden, verknuepfungen
 
 # Richtung: Radicale-Kontakte -> Immich-Personen. Schreibt nichts nach Immich,
 # sondern legt Vorschläge an; übernommen wird mit vorschlaege.py.
@@ -10,8 +10,9 @@ with psycopg.connect(os.environ["DB_DSN"]) as conn, conn.cursor() as cur:
     kontakte = kontakte_laden(cur)
     zaehler = {"neu": 0, "gleich": 0, "ohne_geb": 0, "schon_vorgeschlagen": 0}
     ohne, mehrdeutig = [], []
+    links = verknuepfungen(cur)
     for p in sorted(leute, key=lambda p: p["name"]):
-        status, k, grund = finde_kontakt(p["name"], kontakte)
+        status, k, grund = kontakt_zu(p, kontakte, links)
         if status == "kein":
             ohne.append(p["name"])
             continue

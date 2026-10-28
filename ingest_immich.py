@@ -11,6 +11,8 @@ MAX_BESCHREIBUNGEN = 8
 SICHTBAR = ("timeline", "archive")   # hidden/locked bleiben draußen
 
 url, h = immich()
+# Links im Katalog zeigen auf die Adresse, unter der Immich im Browser erreichbar ist
+oeffentlich = os.environ.get("IMMICH_PUBLIC_URL", "").rstrip("/") or url
 heute = date.today()
 ab = heute.replace(year=heute.year - JAHRE).isoformat()
 
@@ -72,7 +74,7 @@ for tag, fs in sorted(tage.items()):
         zeilen.append("Beschreibungen:\n" + "\n".join(f"- {t}" for t in texte))
     eintraege.append((f"tag:{tag}", "fototag", f"Fotos vom {date.fromisoformat(tag):%d.%m.%Y}",
                       "\n".join(zeilen), ["art:Fototag"], tag, max(f["updatedAt"] for f in fs),
-                      f"{url}/photos/{fs[0]['id']}",
+                      f"{oeffentlich}/photos/{fs[0]['id']}",
                       {"datum": tag, "anzahl": len(fs), "personen": list(leute), "orte": [o for o, _ in orte.most_common()]}))
 
 for pid, p in personen.items():
@@ -81,7 +83,7 @@ for pid, p in personen.items():
         zeilen.append(f"Geburtstag: {p['birthDate']}")
     zeilen.append(f"Fototage: {anzahl[pid]} (erster {spanne[pid][0]}, letzter {spanne[pid][1]})")
     eintraege.append((f"person:{pid}", "person", p["name"], "\n".join(zeilen), ["art:Person"], None,
-                      p.get("updatedAt") or f"{heute}T00:00:00Z", f"{url}/people/{pid}", {"immich_id": pid}))
+                      p.get("updatedAt") or f"{heute}T00:00:00Z", f"{oeffentlich}/people/{pid}", {"immich_id": pid}))
 
 with psycopg.connect(os.environ["DB_DSN"]) as conn, conn.cursor() as cur:
     neu = 0

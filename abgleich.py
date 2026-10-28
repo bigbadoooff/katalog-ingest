@@ -48,6 +48,21 @@ def finde_kontakt(name, kontakte):
         return "mehrdeutig", [k for _, k in treffer], None
     return "ok", treffer[0][1], treffer[0][0][1]
 
+def verknuepfungen(cur):
+    """Immich-Personen-ID -> Kontakt-ID aus den 'ist'-Beziehungen im Katalog."""
+    return dict(cur.execute("""
+        SELECT substr(p.quelle_id, 8), b.zu_id FROM beziehung b
+        JOIN eintrag p ON p.id = b.von_id AND p.quelle = 'immich' AND p.typ = 'person'
+        JOIN eintrag k ON k.id = b.zu_id AND k.typ = 'kontakt'
+        WHERE b.art = 'ist'""").fetchall())
+
+def kontakt_zu(person, kontakte, links):
+    """Erst die Verknüpfung im Katalog (auch vom Architekten bestätigte), sonst der Namensabgleich."""
+    k = next((k for k in kontakte if k["id"] == links.get(person["id"])), None)
+    if k:
+        return "ok", k, "Verknüpfung im Katalog"
+    return finde_kontakt(person["name"], kontakte)
+
 def immich():
     url = os.environ.get("IMMICH_URL", "").rstrip("/")
     key = os.environ.get("IMMICH_API_KEY", "")
