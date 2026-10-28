@@ -1,12 +1,13 @@
 import os, re, psycopg
 from psycopg.types.json import Jsonb
+from abgleich import kontakte_laden, finde_kontakt, passung
 
 FAMILIE = "Engler"
 # Wörter, die beim Namensabgleich Kontakt <-> Absender nicht zählen
 FUELLWOERTER = {"med", "prof", "dipl", "praxis", "zahnarztpraxis", "kinderarzt", "hno",
                 "gmbh", "und", "der", "die", "das", "von"}
 AEHNLICH_AB = 0.75
-ARTEN = ("von", "betrifft", "gehoert_zu", "aehnlich", "ist", "erwaehnt")
+ARTEN = ("von", "betrifft", "gehoert_zu", "aehnlich", "ist", "erwaehnt", "zeigt", "selber_tag")
 
 def ziel(tag, klassen):
     if tag.startswith("von:"):
@@ -74,6 +75,23 @@ with psycopg.connect(os.environ["DB_DSN"]) as conn, conn.cursor() as cur:
                       [t for t in tels if re.search(rf"(?<!\d){t}(?!\d)", dtext)]
             if treffer:
                 kanten.append((did, kid, "erwaehnt", "Kontaktdaten im Dokument: " + ", ".join(sorted(treffer)[:3])))
+
+    # Immich: Fototag -> abgebildete Person (Gesichtserkennung), Dokument -> Fototag mit gleichem Datum,
+    # Immich-Person -> Kontakt nur bei eindeutig gleichem Namen (Stufe 1-2 in abgleich.passung)
+    ipers = dict(cur.execute("SELECT quelle_id, id FROM eintrag WHERE quelle = 'immich' AND typ = 'person'").fetchall())
+    for tid, f in cur.execute("SELECT id, felder FROM eintrag WHERE typ = 'fototag'").fetchall():
+        kanten += [(tid, ipers[f"person:{p}"], "zeigt", "Gesichtserkennung Immich")
+                   for p in f.get("personen", []) if f"person:{p}" in ipers]
+    kanten += cur.execute("""
+        SELECT d.id, t.id, 'selber_tag', 'Dokumentdatum ' || (d.felder->>'datum')
+        FROM eintrag d JOIN eintrag t ON t.typ = 'fototag' AND t.felder->>'datum' = d.felder->>'datum'
+        WHERE d.typ = 'dokument'
+    """).fetchall()
+    alle_kontakte = kontakte_laden(cur)
+    for eid, name in cur.execute("SELECT id, titel FROM eintrag WHERE quelle = 'immich' AND typ = 'person'").fetchall():
+        ergebnis, k, grund = finde_kontakt(name, alle_kontakte)
+        if ergebnis == "ok" and passung(name, k)[0] <= 2:
+            kanten.append((eid, k["id"], "ist", f"Immich-Person, {grund}"))
 
     cur.execute("CREATE TEMP TABLE soll (von_id bigint, zu_id bigint, art text, begruendung text) ON COMMIT DROP")
     cur.executemany("INSERT INTO soll VALUES (%s, %s, %s, %s)", kanten)

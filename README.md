@@ -32,7 +32,7 @@ Ist der PC aus, brechen die Ollama-Worker ab, ohne etwas zu verändern.
 
 | Schritt | Skript | Ollama |
 |---|---|---|
-| 1. Einlesen | `ingest_paperless.py`, `ingest_radicale.py` | – |
+| 1. Einlesen | `ingest_paperless.py`, `ingest_radicale.py`, `ingest_immich.py` (Personen und Fototage der letzten 10 Jahre) | – |
 | 2. Abschnitte und Embeddings | `worker_abschnitte.py` | bge-m3 |
 | 3. Zusammenfassung (nur Dokumente) | `worker_zusammenfassung.py` | gemma3 |
 | 4. Feste Felder wie Art, Absender, Betrag, Nummern, Fristen | `worker_felder.py` | gemma3 |
@@ -50,9 +50,9 @@ Fragen stellen geht mit `frage.py <Frage>`. Das Modell lässt sich mit `FRAGE_MO
 Die Tabellenstruktur steht in `schema.sql`, das ist ein Dump nur des Schemas. Neu aufsetzen geht so:
 `docker exec -i katalog-db psql -U katalog -d katalog < schema.sql`
 
-- `eintrag`: Dokumente, Kontakte und Knoten (Absender, Personen, Vorgänge) mit `zusammenfassung`, `felder` (jsonb) und `embedding`
+- `eintrag`: Dokumente, Kontakte, Immich-Personen, Fototage (ein Eintrag je Tag mit Orten, Personen und Bildbeschreibungen) und Knoten (Absender, Personen, Vorgänge) mit `zusammenfassung`, `felder` (jsonb) und `embedding`
 - `abschnitt`: Textstücke mit Embedding für `frage.py`
-- `beziehung`: Verknüpfungen. `ableitung = true` heißt berechnet, `false` heißt vom Architekten bestätigt.
+- `beziehung`: Verknüpfungen (von, betrifft, gehoert_zu, aehnlich, ist, erwaehnt, zeigt = Fototag → Person, selber_tag = Dokument → Fototag am Dokumentdatum). `ableitung = true` heißt berechnet, `false` heißt vom Architekten bestätigt.
 - `vorschlag`: offene, übernommene und verworfene Vorschläge
 - `tag_klasse`: die Einordnung der Tags durch das Modell. Mit `quelle = 'manuell'` lässt sich eine Einordnung von Hand festlegen, die das Modell nie überschreibt.
 
