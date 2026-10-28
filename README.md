@@ -61,3 +61,16 @@ Die Tabellenstruktur steht in `schema.sql`, das ist ein Dump nur des Schemas. Ne
 `PAPERLESS_URL`, `PAPERLESS_PUBLIC_URL`, `PAPERLESS_TOKEN`, `DB_DSN`, `OLLAMA_URL`, `IMMICH_URL`, `IMMICH_API_KEY`, `RADICALE_URL`, `RADICALE_USER`, `RADICALE_PASSWORD`
 
 Die Datei wird nie eingecheckt.
+
+## Git
+
+Die Arbeitskopie liegt auf jarvis in `~/katalog-ingest`, dort laufen die Skripte. GitHub (privat, `bigbadoooff/katalog-ingest`) wird nur vom PC aus beschrieben, damit jarvis keine GitHub-Zugangsdaten braucht.
+
+1. Auf jarvis ändern und committen.
+2. Auf dem PC in `C:\Users\engle\jarvis-setup\katalog-ingest` übertragen:
+   ```sh
+   git pull jarvis main
+   git push github main
+   ```
+
+Der PC-Klon verwendet das Windows-OpenSSH (`core.sshCommand`), weil der SSH-Schlüssel im Agent des Passwortmanagers liegt.
