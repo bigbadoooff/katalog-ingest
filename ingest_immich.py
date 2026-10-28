@@ -94,10 +94,15 @@ with psycopg.connect(os.environ["DB_DSN"]) as conn, conn.cursor() as cur:
             ON CONFLICT (quelle, quelle_id) DO UPDATE SET
                 titel = EXCLUDED.titel, inhalt_auszug = EXCLUDED.inhalt_auszug, tags = EXCLUDED.tags,
                 zeitstempel = EXCLUDED.zeitstempel, geaendert_am = EXCLUDED.geaendert_am,
-                link = EXCLUDED.link, felder = EXCLUDED.felder, status = 'neu'
+                link = EXCLUDED.link, felder = EXCLUDED.felder,
+                -- neu einbetten nur, wenn sich der Text ändert, nicht bei einem anderen Link
+                status = CASE WHEN eintrag.inhalt_auszug IS DISTINCT FROM EXCLUDED.inhalt_auszug
+                                OR eintrag.titel IS DISTINCT FROM EXCLUDED.titel
+                              THEN 'neu' ELSE eintrag.status END
             WHERE eintrag.inhalt_auszug IS DISTINCT FROM EXCLUDED.inhalt_auszug
                OR eintrag.titel IS DISTINCT FROM EXCLUDED.titel
                OR eintrag.felder IS DISTINCT FROM EXCLUDED.felder
+               OR eintrag.link IS DISTINCT FROM EXCLUDED.link
         """, (qid, typ, titel, text, tags, zeit, geaendert, link, Jsonb(felder))).rowcount
     weg = cur.execute("DELETE FROM eintrag WHERE quelle = 'immich' AND NOT (quelle_id = ANY(%s))",
                       ([e[0] for e in eintraege],)).rowcount
