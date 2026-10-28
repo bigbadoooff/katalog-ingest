@@ -10,3 +10,4 @@ __pycache__/
 # Sicherungskopien, die Historie liegt in git
 *.bak
 *.bak[0-9]*
+logs/
